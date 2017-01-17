@@ -1,0 +1,249 @@
+TC_1:
+'The application link is set as a property in the project and for each test the link will be picked up from there.
+'The test data is created in the project in the Data tab and saved as datatemplates.
+'Object repository is created page wise and saved as the resourcetemplates
+
+Int S, Numrec, Numrecaftadd
+Array V
+String CName
+
+'Load application
+app.t.Setproperty("Propertyname", "<Screenname>","Value") ----{"Focusscreen","HomePage" ,"http://computer-database.herokuapp.com/computers"}
+app.t.Loadproperty("Propertyname","<Screenname>","Value") ----("Pageload",, "http://computer-database.herokuapp.com/computers")
+
+'Open Add a computer page
+Numrec = app.t.querydatabase ("select count(computer_name) from computer_table")
+app.t.Clickbutton("Resourcetype", "Resourcename") ----{"Button", "Add a computer"}
+
+'Focus moves to the new window on its own as focus is always on the front window cannot be changed unless the front window is closed.
+'Populate data from the data templates stored in the tool
+app.t.Populatefromtemplate ("Screenname", "Templatename") ----{"Add a computer","TestData1"}
+
+'Click on Create button
+app.t.Clickbutton("Resourcetype", "Resourcename") -----{"Button","Create this computer"}
+
+'Validate Mandatory field
+S=app.t.Mandatoryfieldcheck("Screenname", "Resourcetype", "Resourcename", if present(return 0) if absent(return 1)) '("Add a computer", "TextField", "Computername")
+If S=0 then
+	?app.t.Teststatus("Status", "Pass")
+Else
+	'?app.t.Teststatus("Status", "Fail")
+	?app.T.Enablelogging(Errorlog, "","Mandatory field &Field_Name& is missing") -----Error will be logged in the log
+End if
+
+'Populate test data
+app.t.Populatefromtemplate ("Screenname", "Templatename") ----{"Add a computer","TestData2"}
+app.t.Clickbutton("Resourcetype", "Resourcename") -----{"Button","Create this computer"}
+
+'Load application
+app.t.Setproperty("Propertyname", "<Screenname>","Value") ----{"Focusscreen","HomePage" ,"http://computer-database.herokuapp.com/computers"}
+app.t.Loadproperty("Propertyname","<Screenname>","Value") ----("Pageload",, "http://computer-database.herokuapp.com/computers")
+
+'Populate test data
+app.t.Populatefromtemplate ("Screenname", "Templatename") ----{"HomePage","TestData2"}
+app.t.Clickbutton("Resourcetype", "Resourcename") -----{"Button","Filter by name"}
+
+'Validate if record is created
+S= app.t.Validatetablerecord("Screenname", "Resourcetype", "Resourcename", "Numofrec","Colnum","Rownum", if present(return 0) if absent(return 1))
+'Screenname = HomePage, Resourcetype = Table, Resourcename= Computertable, Number of records is optional, Columnnum = 1, Rownum = 2
+
+If S=0 then
+	V= App.t.Fetchtablerecord("Screenname", "Resourcetype", "Resourcename", "Numofrec","[AColnum]","[ARownum]")  --AColnum ARownum are arrays.
+	CName= app.t.Accessarraydetail("ArrayName", "Colnum","Rownum")
+	If CName = = ABC TEST2 then
+	'Establish DB connection which is done via properties
+		Numrecaftadd = app.t.querydatabase ("select count(computer_name) from computer_table")
+		If Numrecaftadd = Numrec + 1 then
+			?app.t.Teststatus("Status", "Pass")
+		Else	
+			?app.T.Enablelogging(Errorlog, "","Record is not inserted in database")
+			?app.t.Teststatus("Status", "Fail")
+		End if
+
+	Else
+		?app.t.Teststatus("Status", "Fail")
+		?app.T.Enablelogging(Error log, "","Records not found")
+	End if
+Else
+	?app.T.Enablelogging(Error log, "","Records not found")
+
+End if
+
+TC_6:
+'The application link is set as a property in the project and for each test the link will be picked up from there.
+'The test data is created in the project in the Data tab and saved as datatemplates.
+'Object repository is created page wise and saved as the resourcetemplates
+
+Int S, C, CountDB
+Array V
+
+'Load application
+app.t.Setproperty("Propertyname", "<Screenname>","Value") ----{"Focusscreen","HomePage" ,"http://computer-database.herokuapp.com/computers"}
+app.t.Loadproperty("Propertyname","<Screenname>","Value") ----("Pageload",, "http://computer-database.herokuapp.com/computers")
+
+'Populate test data
+app.t.Populatefromtemplate ("Screenname", "Templatename") ----{"HomePage","TestData10"}
+app.t.Clickbutton("Resourcetype", "Resourcename") -----{"Button","Filter by name"}
+
+'Validate if data is fetched
+S= app.t.Validatetablerecord("Screenname", "Resourcetype", "Resourcename", "Numofrec","Colnum","Rownum", if present(return 0) if absent(return 1))
+'Screenname = HomePage, Resourcetype = Table, Resourcename= Computertable, Number of records is optional, Columnnum = 1, Rownum = 2
+
+If S=0 then
+	?app.T.Enablelogging(Errorlog, "","Record fetched is incorrect")
+Else	
+	?app.T.Enablelogging(Errorlog, "","Records not found")
+			
+End if
+
+app.t.Populatefromtemplate ("Screenname", "Templatename") ----{"HomePage","TestData11"}
+app.t.Clickbutton("Resourcetype", "Resourcename") -----{"Button","Filter by name"}
+
+'Validate if data is fetched
+S= app.t.Validatetablerecord("Screenname", "Resourcetype", "Resourcename", "Numofrec","Colnum","Rownum", if present(return 0) if absent(return 1))
+'Screenname = HomePage, Resourcetype = Table, Resourcename= Computertable, Number of records is optional, Columnnum = 1, Rownum = 2
+
+If S=0 then
+	V= App.t.Fetchtablerecord("Screenname", "Resourcetype", "Resourcename", "Numofrec","[AColnum]","[ARownum]")  --AColnum ARownum are arrays.
+	C = app.t.Getcount (V)
+	'Establish DB connection which is done via properties
+	CountDB = app.t.querydatabase ("select count(computer_name) from computer_table where computer_name like "abc%")
+		If C == CountDB then
+			?app.t.Teststatus("Status", "Pass")
+		Else	
+			?app.T.Enablelogging(Errorlog, "","Record count is incorrect")
+			?app.t.Teststatus("Status", "Fail")
+		End if
+
+Else
+	?app.t.Teststatus("Status", "Fail")
+	?app.T.Enablelogging(Error log, "","Records not found")
+End if
+
+TC_7:
+
+'The application link is set as a property in the project and for each test the link will be picked up from there.
+'The test data is created in the project in the Data tab and saved as datatemplates.
+'Object repository is created page wise and saved as the resourcetemplates
+
+Int S, S1 C, CountDB
+Array V
+
+'Load application
+app.t.Setproperty("Propertyname", "<Screenname>","Value") ----{"Focusscreen","HomePage" ,"http://computer-database.herokuapp.com/computers"}
+app.t.Loadproperty("Propertyname","<Screenname>","Value") ----("Pageload",, "http://computer-database.herokuapp.com/computers")
+
+'Populate test data
+app.t.Populatefromtemplate ("Screenname", "Templatename") ----{"HomePage","TestData12"}
+app.t.Clickbutton("Resourcetype", "Resourcename") -----{"Button","Filter by name"}
+
+
+'Validate if data is fetched
+S= app.t.Validatetablerecord("Screenname", "Resourcetype", "Resourcename", "Numofrec","Colnum","Rownum", if present(return 0) if absent(return 1))
+'Screenname = HomePage, Resourcetype = Table, Resourcename= Computertable, Number of records is optional, Columnnum = 1, Rownum = 2
+
+If S=0 then
+	V= App.t.Fetchtablerecord("Screenname", "Resourcetype", "Resourcename", "Numofrec","[AColnum]","[ARownum]")  --AColnum ARownum are arrays.
+	C = app.t.Getcount (V)
+	'Establish DB connection which is done via properties
+	CountDB = app.t.querydatabase ("select count(computer_name) from computer_table where computer_name like "abc%")
+		If C = = CountDB then
+			V= App.t.Fetchtablerecord("Screenname", "Resourcetype", "Resourcename", "Numofrec","[AColnum]","[ARownum]")  --AColnum ARownum are arrays.
+			app.t.Setproperty("Propertyname", "<Screenname>","Value") ----{"Table","Computertable" ,"ABC TEST2"}
+			app.t.Loadproperty("Propertyname","<Screenname>","Value") ----("Link",, "http://computer-database.herokuapp.com/computers/599")
+			app.t.Populatefromtemplate ("Screenname", "Templatename") ----{"HomePage","TestData13"}
+			app.t.Clickbutton("Resourcetype", "Resourcename") -----{"Button","Save this computer"}
+			'Populate test data
+			app.t.Populatefromtemplate ("Screenname", "Templatename") ----{"HomePage","TestData12"}
+			app.t.Clickbutton("Resourcetype", "Resourcename") -----{"Button","Filter by name"}
+
+			'Validate if record is edited
+			S1= app.t.Validatetablerecord("Screenname", "Resourcetype", "Resourcename", "Numofrec","Colnum","Rownum", if present(return 0) if absent(return 1))
+			'Screenname = HomePage, Resourcetype = Table, Resourcename= Computertable, Number of records is optional, Columnnum = 1, Rownum = 4
+
+			If S1=0 then
+				V= App.t.Fetchtablerecord("Screenname", "Resourcetype", "Resourcename", "Numofrec","[AColnum]","[ARownum]")  --AColnum ARownum are arrays.
+				CName= app.t.Accessarraydetail("ArrayName", "Colnum","Rownum")
+				If CName = = ABC TEST13 then
+				?app.t.Teststatus("Status", "Pass")
+			Else	
+				?app.T.Enablelogging(Errorlog, "","Record is not edited in database")
+				?app.t.Teststatus("Status", "Fail")
+			End if
+		else
+			?app.T.Enablelogging(Errorlog, "","Record filterimg is incorrect")
+			?app.t.Teststatus("Status", "Fail")
+		end if	
+else			
+	?app.T.Enablelogging(Errorlog, "","Record is not edited in database")
+	?app.t.Teststatus("Status", "Fail")		
+end if		
+			
+			
+TC_9			
+'The application link is set as a property in the project and for each test the link will be picked up from there.
+'The test data is created in the project in the Data tab and saved as datatemplates.
+'Object repository is created page wise and saved as the resourcetemplates
+
+Int S, S1 C, CountDB
+Array V
+
+'Load application
+app.t.Setproperty("Propertyname", "<Screenname>","Value") ----{"Focusscreen","HomePage" ,"http://computer-database.herokuapp.com/computers"}
+app.t.Loadproperty("Propertyname","<Screenname>","Value") ----("Pageload",, "http://computer-database.herokuapp.com/computers")
+
+'Populate test data
+app.t.Populatefromtemplate ("Screenname", "Templatename") ----{"HomePage","TestData12"}
+app.t.Clickbutton("Resourcetype", "Resourcename") -----{"Button","Filter by name"}
+
+
+'Validate if data is fetched
+S= app.t.Validatetablerecord("Screenname", "Resourcetype", "Resourcename", "Numofrec","Colnum","Rownum", if present(return 0) if absent(return 1))
+'Screenname = HomePage, Resourcetype = Table, Resourcename= Computertable, Number of records is optional, Columnnum = 1, Rownum = 2
+
+If S=0 then
+	V= App.t.Fetchtablerecord("Screenname", "Resourcetype", "Resourcename", "Numofrec","[AColnum]","[ARownum]")  --AColnum ARownum are arrays.
+	C = app.t.Getcount (V)
+	'Establish DB connection which is done via properties
+   	 CountDB = app.t.querydatabase ("select count(computer_name) from computer_table where computer_name like "abc%")
+		If C = = CountDB then
+			V= App.t.Fetchtablerecord("Screenname", "Resourcetype", "Resourcename", "Numofrec","[AColnum]","[ARownum]")  --AColnum ARownum are arrays.
+			app.t.Setproperty("Propertyname", "<Screenname>","Value") ----{"Table","Computertable" ,"ABC TEST13"}
+			app.t.Loadproperty("Propertyname","<Screenname>","Value") ----("Link",, "http://computer-database.herokuapp.com/computers/599").
+			app.t.Clickbutton("Resourcetype", "Resourcename") -----{"Button","Delete this computer"}
+			
+			'Populate test data
+			app.t.Populatefromtemplate ("Screenname", "Templatename") ----{"HomePage","ABC TEST13"}
+			app.t.Clickbutton("Resourcetype", "Resourcename") -----{"Button","Filter by name"}
+
+			'Validate if record is deleted
+			S1= app.t.Validatetablerecord("Screenname", "Resourcetype", "Resourcename", "Numofrec","Colnum","Rownum", if present(return 0) if absent(return 1))
+			'Screenname = HomePage, Resourcetype = Table, Resourcename= Computertable, Number of records is optional, Columnnum = 1, Rownum = 2
+			
+			If S1=0 then
+						
+				?app.T.Enablelogging(Errorlog, "","Record not deleted")
+				?app.t.Teststatus("Status", "Fail")	
+			else
+				'Establish DB connection which is done via properties
+
+				CountDB = app.t.querydatabase ("select count(computer_name) from computer_table where computer_name = "ABC TEST13" and status = 'Deleted')
+				if CountDB <> 0 then
+					?app.T.Enablelogging(Errorlog, "","Record deleted")
+					?app.t.Teststatus("Status", "Pass")
+				else
+					?app.T.Enablelogging(Errorlog, "","Record not deleted")
+					?app.t.Teststatus("Status", "Fail")	
+				end if	
+			end if
+		else
+			?app.T.Enablelogging(Errorlog, "","Record not found")
+			?app.t.Teststatus("Status", "Fail")		
+		end if
+
+else			
+	?app.T.Enablelogging(Errorlog, "","Record not found")
+	?app.t.Teststatus("Status", "Fail")		
+end if
+
+
